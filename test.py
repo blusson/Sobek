@@ -9,6 +9,6 @@ for y in test.weights:
 for y in test.biases:
     print(y, end="\n\n")"""
 
-print(network.reLu(8))
+#print(network.__reLu(8))
 
 print(test.process(np.random.default_rng(42).random((16))))
