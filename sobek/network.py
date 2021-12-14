@@ -16,10 +16,17 @@ class network:
         self.__weights = np.array(self.__weights, dtype=object)
         self.__biases = np.array(self.__biases, dtype=object)
 
-    def __reLu(value):
+    def __reLu(value, derivative=False):
+        if (derivative):
+            return 0 if (value == 0) else 1
         return max(0, value)
 
-    def process(self, input):
+    def __sigmoid(value, derivative=False):
+        if (derivative):
+            return __sigmoid(value) * (1 - __sigmoid(value))
+        return 1/(1+np.exp(-value))
+
+    def process(self, input, storeValues=False):
         if type(input) != np.ndarray:
             raise TypeError("The input must be a vector!")
         if input.size != self.__inputLayerSize:
@@ -38,4 +45,12 @@ class network:
         return input
 
     def train(self, inputs, results):
+        self.__outputs = 1
+        #for j in range(1,):
+        #partialDerivatives
+
+    def __Error(layer, output, desiredOutput):
+        return __ErrorFinalLayerFromValue() if (layer == 1)
         
+    def __ErrorFinalLayer(self, neuron):
+        return __reLu(value, true) * (output - desiredOutput)
