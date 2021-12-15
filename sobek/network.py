@@ -35,16 +35,19 @@ class network:
         #    raise TypeError("The input vector must contain floats!")
 
         if (__storeValues):
-            self.activations = []
-            self.outputs = []
+            self.activations = np.array([])
+            self.outputs = np.array([])
         
         for layerWeights, bias in zip(self.__weights, self.__biases):
             _input = np.matmul(_input, layerWeights)
             _input = np.add(_input, bias)
 
             if (__storeValues):
-                self.activations.append(_input)
-                np.insert(self.activations, 0, bias)
+                print("-------------------")
+                print(bias)
+                print("-------------------")
+                self.activations = np.append(self.activations, _input)
+                self.activations[len(self.activations)-1] = np.insert(self.activations[len(self.activations)-1], 0, bias)
 
             #reLu application
             with np.nditer(_input, op_flags=['readwrite'], flags=['refs_ok']) as layer:
@@ -53,8 +56,8 @@ class network:
 
             #On peut comparer la performance si on recalcul plus tard
             if (__storeValues):
-                self.outputs.append(_input)
-                np.insert(self.outputs, 0, 1)
+                self.outputs = np.append(self.outputs, _input)
+                self.outputs[len(self.outputs)-1] = np.insert(self.outputs[len(self.outputs)-1], 0, 1)
         
         return _input
 
@@ -63,9 +66,10 @@ class network:
         for _input, desiredOutput in zip(inputs, desiredOutputs):
             self.__output = self.process(_input, True)
             self.__desiredOutput = desiredOutput
-            for layerNumber in range(len(ErrorSums)):
+            for layerNumber in range(len(ErrorSums)-1, -1, -1):
                 ErrorSums[layerNumber][0] += self.__partialDerivative(layerNumber, 0)
                 for neuronNumber in range(1, len(ErrorSums[layerNumber])):
+                    print("layer : " + str(layerNumber) + " neuron : " + str(neuronNumber))
                     ErrorSums[layerNumber][neuronNumber] += self.__partialDerivative(layerNumber, neuronNumber)
         for i in range(len(ErrorSums)):
                 for j in range(len(ErrorSums[i])):
@@ -74,9 +78,10 @@ class network:
         
 
     def __Error(self, layer, neuron):
-        return self.__ErrorFinalLayer(neuron) if (layer == len(self.__weights)) else self.__ErrorHiddenLayer(layer, neuron)
+        return self.__ErrorFinalLayer(neuron) if (layer == len(self.__weights)-1) else self.__ErrorHiddenLayer(layer, neuron)
         
     def __ErrorFinalLayer(self, neuron):
+        print(self.activations)
         return network.__reLu(self.activations[len(self.activations)-1][neuron], True) * (self.__output[neuron] - self.__desiredOutput[neuron])
 
     def __ErrorHiddenLayer(self, layer, neuron):
