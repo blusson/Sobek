@@ -26,44 +26,55 @@ class network:
             return network.__sigmoid(value) * (1 - network.__sigmoid(value))
         return 1/(1+np.exp(-value))
 
-    def process(self, input, storeValues=False):
-        if type(input) != np.ndarray:
+    def process(self, _input, __storeValues=False):
+        if type(_input) != np.ndarray:
             raise TypeError("The input must be a vector!")
-        if input.size != self.__inputLayerSize:
+        if _input.size != self.__inputLayerSize:
             raise ValueError("The input vector has the wrong size!")
-        if input.dtype != np.float64:
-            raise TypeError("The input vector must contain floats!")
+        #if _input.dtype != np.float64:
+        #    raise TypeError("The input vector must contain floats!")
 
-        if (storeValues):
+        if (__storeValues):
             self.activations = []
             self.outputs = []
         
         for layerWeights, bias in zip(self.__weights, self.__biases):
-            input = np.matmul(input, layerWeights)
-            input = np.add(input, bias)
+            _input = np.matmul(_input, layerWeights)
+            _input = np.add(_input, bias)
 
-            if (storeValues):
-                self.activations.append(input)
+            if (__storeValues):
+                self.activations.append(_input)
+                np.insert(self.activations, 0, bias)
 
             #reLu application
-            with np.nditer(input, op_flags=['readwrite']) as layer:
+            with np.nditer(_input, op_flags=['readwrite'], flags=['refs_ok']) as layer:
                 for neuron in layer:
                     neuron = network.__reLu(neuron)
 
             #On peut comparer la performance si on recalcul plus tard
-            if (storeValues):
-                self.outputs.append(input)
+            if (__storeValues):
+                self.outputs.append(_input)
+                np.insert(self.outputs, 0, 1)
         
-        return input
+        return _input
 
-    def train(self, inputs, desiredOutputs):
-        for input, desiredOutput in zip(inputs, desiredOutputs):
-            self.__output = self.process(input, True)
+    def train(self, inputs, desiredOutputs, learningRate):
+        ErrorSums = [[0]*(len(layer)+1) for layer in self.__biases]
+        for _input, desiredOutput in zip(inputs, desiredOutputs):
+            self.__output = self.process(_input, True)
             self.__desiredOutput = desiredOutput
-        #partialDerivatives
+            for layerNumber in range(len(ErrorSums)):
+                ErrorSums[layerNumber][0] += self.__partialDerivative(layerNumber, 0)
+                for neuronNumber in range(1, len(ErrorSums[layerNumber])):
+                    ErrorSums[layerNumber][neuronNumber] += self.__partialDerivative(layerNumber, neuronNumber)
+        for i in range(len(ErrorSums)):
+                for j in range(len(ErrorSums[i])):
+                    ErrorSums[i][j] = 1 / ErrorSums[i][j]
+                    self.__biases[i, j] -= learningRate * ErrorSums[i][j]
+        
 
     def __Error(self, layer, neuron):
-        return self.__ErrorFinalLayer(neuron) if (layer == 1) else self.__ErrorHiddenLayer(layer, neuron)
+        return self.__ErrorFinalLayer(neuron) if (layer == len(self.__weights)) else self.__ErrorHiddenLayer(layer, neuron)
         
     def __ErrorFinalLayer(self, neuron):
         return network.__reLu(self.activations[len(self.activations)-1][neuron], True) * (self.__output[neuron] - self.__desiredOutput[neuron])
