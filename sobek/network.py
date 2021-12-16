@@ -47,7 +47,7 @@ class network:
             if (__storeValues):
                 self.activations.append(_input.copy())
 
-            #reLu application
+            #activation function application
             for neuron in range(len(_input)):
                 _input[neuron] = network.__sigmoid(_input[neuron])
 
@@ -67,8 +67,12 @@ class network:
         self.__errors = [[0]*(len(layer)) for layer in self.__weights]
 
         for _input, desiredOutput in zip(inputs, desiredOutputs):
+
+            #rempli self.activations et self.outputs
             self.__output = self.process(_input, True)
+
             self.__desiredOutput = desiredOutput
+
             for layerNumber in range(len(errorSums)-1, -1, -1):
                 for neuronNumber in range(len(errorSums[layerNumber])):
                     for weightNumber in range(len(errorSums[layerNumber][neuronNumber])):
@@ -77,12 +81,17 @@ class network:
 
         total = 0
 
-        for i in range(len(errorSums)):
-                for j in range(len(errorSums[i])):
-                    for k in range(len(errorSums[i][j])):
-                        errorSums[i][j][k] = errorSums[i][j][k] / len(inputs)
-                        total += errorSums[i][j][k]
-                        self.__weights[i][j][k] -= learningRate * errorSums[i][j][k]
+        for layerNumber in range(len(errorSums)):
+                for neuronNumber in range(len(errorSums[layerNumber])):
+                    for weightNumber in range(len(errorSums[layerNumber][neuronNumber])):
+
+                        #Probablement faisable avec une multiplication de matrices
+                        errorSums[layerNumber][neuronNumber][weightNumber] = errorSums[layerNumber][neuronNumber][weightNumber] / len(inputs)
+                        
+                        total += errorSums[layerNumber][neuronNumber][weightNumber]
+
+                        #Probablement faisable avec une somme de matrices
+                        self.__weights[layerNumber][neuronNumber][weightNumber] -= learningRate * errorSums[layerNumber][neuronNumber][weightNumber]
 
         print("Error : " + str(total))
 
@@ -96,9 +105,10 @@ class network:
 
     def __ErrorHiddenLayer(self, layer, neuron):
         upperLayerLinksSum = 0
-        for upperLayerNeuron in range(len(self.__weights[layer+1]-1)):
+        #Probablement faisable avec une multiplication de matrices
+        for upperLayerNeuron in range(len(self.__weights[layer+1])):
             #A comparer avec un acces direct au erreurs precalcules
-            upperLayerLinksSum += self.__weights[layer+1][upperLayerNeuron][neuron] * self.__Error(layer+1, neuron)
+            upperLayerLinksSum += self.__weights[layer+1][upperLayerNeuron][neuron] * self.__Error(layer+1, upperLayerNeuron)
         return network.__sigmoid(self.activations[layer][neuron], True) * upperLayerLinksSum
 
     def __partialDerivative(self, layer, neuron, weight):
