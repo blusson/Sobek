@@ -4,11 +4,11 @@ from sobek.network import network
 
 random.seed()
 
-myNetwork = network(10, 10)
+myNetwork = network(10, 10, 10)
 
 learningRate = 1
 
-for j in range(10000):
+for j in range(100):
     inputs = []
     inputs2 = []
     desiredOutputs = []
@@ -25,15 +25,15 @@ for j in range(10000):
         desiredOutputs[i][9 - int(inputs[i][0]*10)] = 1.0
     desiredOutputs = np.array(desiredOutputs, dtype=object)
 
-    for i in range(1000):
-        inputs2.append([0]*10)
-        inputs2[i][int(inputs[i][0]*10)] = 1.0
+    #for i in range(1000):
+    #    inputs2.append([0]*10)
+    #    inputs2[i][int(inputs[i][0]*10)] = 1.0
     inputs2 = np.array(inputs2, dtype=object)
     
     if (j%10000 == 0):
         learningRate*= 0.1
         
-    myNetwork.train(inputs2, desiredOutputs, learningRate)
+    myNetwork.train(desiredOutputs, desiredOutputs, learningRate)
 
 test = []
 test.append([0]*10)

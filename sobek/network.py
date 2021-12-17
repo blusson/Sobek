@@ -63,8 +63,9 @@ class network:
 
 
     def train(self, inputs, desiredOutputs, learningRate):
-        errorSums = [[[0]*(len(neuron)) for neuron in layer] for layer in self.__weights]
-        self.__errors = [[0]*(len(layer)) for layer in self.__weights]
+        errorSumsWeights = [[[0]*len(neuron) for neuron in layer] for layer in self.__weights]
+        errorSumsBiases = [[0]*len(layer) for layer in self.__biases]
+        self.__errors = [[0]*len(layer) for layer in self.__weights]
 
         for _input, desiredOutput in zip(inputs, desiredOutputs):
 
@@ -73,27 +74,38 @@ class network:
 
             self.__desiredOutput = desiredOutput
 
-            for layerNumber in range(len(errorSums)-1, -1, -1):
-                for neuronNumber in range(len(errorSums[layerNumber])):
-                    for weightNumber in range(len(errorSums[layerNumber][neuronNumber])):
+            #Somme de matrice ?
+            for layerNumber in range(len(errorSumsWeights)-1, -1, -1):
+                for neuronNumber in range(len(errorSumsWeights[layerNumber])):
+                    errorSumsBiases[layerNumber][neuronNumber] += self.__Error(layerNumber, neuronNumber)
+                    for weightNumber in range(len(errorSumsWeights[layerNumber][neuronNumber])):
                         #print("layer : " + str(layerNumber) + " neuron : " + str(neuronNumber) + " weight : " + str(weightNumber))
-                        errorSums[layerNumber][neuronNumber][weightNumber] += self.__partialDerivative(layerNumber, neuronNumber, weightNumber)
+                        errorSumsWeights[layerNumber][neuronNumber][weightNumber] += self.__PartialDerivative(layerNumber, neuronNumber, weightNumber)
 
         total = 0
 
-        for layerNumber in range(len(errorSums)):
-                for neuronNumber in range(len(errorSums[layerNumber])):
-                    for weightNumber in range(len(errorSums[layerNumber][neuronNumber])):
+        errorSumsWeights = np.multiply(errorSumsWeights, -(learningRate/len(inputs)))
+        self.__weights = np.add(self.__weights, errorSumsWeights)
+
+        errorSumsBiases = np.multiply(errorSumsBiases, -(learningRate/len(inputs)))
+        self.__biases = np.add(self.__biases, errorSumsBiases)
+
+        print(self.__biases)
+        
+        """
+        for layerNumber in range(len(errorSumsWeights)):
+                for neuronNumber in range(len(errorSumsWeights[layerNumber])):
+                    for weightNumber in range(len(errorSumsWeights[layerNumber][neuronNumber])):
 
                         #Probablement faisable avec une multiplication de matrices
-                        errorSums[layerNumber][neuronNumber][weightNumber] = errorSums[layerNumber][neuronNumber][weightNumber] / len(inputs)
+                        errorSumsWeights[layerNumber][neuronNumber][weightNumber] = errorSumsWeights[layerNumber][neuronNumber][weightNumber] / len(inputs)
                         
-                        total += errorSums[layerNumber][neuronNumber][weightNumber]
+                        total += errorSumsWeights[layerNumber][neuronNumber][weightNumber]
 
                         #Probablement faisable avec une somme de matrices
-                        self.__weights[layerNumber][neuronNumber][weightNumber] -= learningRate * errorSums[layerNumber][neuronNumber][weightNumber]
+                        self.__weights[layerNumber][neuronNumber][weightNumber] -= learningRate * errorSumsWeights[layerNumber][neuronNumber][weightNumber]
 
-        print("Error : " + str(total))
+        print("Error : " + str(total))"""
 
     def __Error(self, layer, neuron):
         if (self.__errors[layer][neuron] == 0 ):
@@ -107,9 +119,8 @@ class network:
         upperLayerLinksSum = 0
         #Probablement faisable avec une multiplication de matrices
         for upperLayerNeuron in range(len(self.__weights[layer+1])):
-            #A comparer avec un acces direct au erreurs precalcules
-            upperLayerLinksSum += self.__weights[layer+1][upperLayerNeuron][neuron] * self.__Error(layer+1, upperLayerNeuron)
+            upperLayerLinksSum += self.__weights[layer+1][upperLayerNeuron][neuron] * self.__errors[layer+1][upperLayerNeuron]
         return network.__sigmoid(self.activations[layer][neuron], True) * upperLayerLinksSum
 
-    def __partialDerivative(self, layer, neuron, weight):
+    def __PartialDerivative(self, layer, neuron, weight):
         return self.__Error(layer, neuron) * self.outputs[layer-1][weight]
