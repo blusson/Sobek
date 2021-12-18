@@ -129,3 +129,13 @@ class network:
 
     def __PartialDerivative(self, layer, neuron, weight):
         return self.__Error(layer, neuron) * self.outputs[layer][weight]
+
+
+
+    def saveToFile(self, fileName):
+        np.savez(fileName, biases=self.biases, weights=self.weights)
+
+    def loadFromFile(self, fileName):
+        data = np.load(fileName)
+        self.biases = data['biases']
+        self.weights = data['weights']
