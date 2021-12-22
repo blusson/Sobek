@@ -8,7 +8,7 @@ myNetwork = network(10, 10)
 
 learningRate = 3
 
-for j in range(10000):
+for j in range(1000):
     rand = []
     inputs = []
     desiredOutputs = []
@@ -36,4 +36,13 @@ test[0][1] = 1.0
 test[1][5] = 1.0
 print(test[0])
 print(myNetwork.process(test[0]))
+print(test[1])
 print(myNetwork.process(test[1]))
+
+print("Save and load test :")
+
+myNetwork.saveToFile("test")
+
+myNetwork2 = network.networkFromFile("test")
+
+print(myNetwork.process(test[0]).all() == myNetwork2.process(test[0]).all())

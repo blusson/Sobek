@@ -1,4 +1,8 @@
+import random
 import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.animation as animation
+import pickle
 
 class network:
 
@@ -26,9 +30,9 @@ class network:
 
     def process(self, _input, __storeValues=False):
         if type(_input) != np.ndarray:
-            raise TypeError("The input must be a vector!")
+            raise TypeError("The input must be a numpy array!")
         if _input.size != self.__inputLayerSize:
-            raise ValueError("The input vector has the wrong size!")
+            raise ValueError("The input vector has the wrong size! " + str(_input.size) + " != " + str(self.__inputLayerSize))
         if _input.dtype != np.float64:
             print(_input.dtype)
             raise TypeError("The input vector must contain floats!")
@@ -59,58 +63,100 @@ class network:
 
 
 
-    def train(self, inputs, desiredOutputs, learningRate):
+    def train(self, inputs, desiredOutputs, learningRate, batchSize, epochs=1, visualize=False):
+        if (type(inputs) != list or type(desiredOutputs) != list):
+            raise TypeError("The inputs and desired outputs must be lists of numpy arrays !")
         if (len(inputs) != len(desiredOutputs)):
-            raise ValueError("The inputs and desired outputs vectors must have the same amount of data !")
+            raise ValueError("The inputs and desired outputs lists must have the same amount of data ! " + str(len(inputs)) + " != " + str(len(desiredOutputs)))
+        if (len(inputs) == 0):
+            raise ValueError("The list is empty !")
+        if (visualize == False):
+            if (self.__inputLayerSize != 2):
+                raise ValueError("Visualization is only possible for 2 inputs networks")
+            if (len(self.weights[-1]) != 1):
+                raise ValueError("Visualization is only possible for 1 output networks")
 
-        for _input, desiredOutput in zip(inputs, desiredOutputs):
+        errorSumsWeights = []
+        errorSumsBiases = []
 
-            errorSumsWeights = [np.zeros(layer.shape) for layer in self.weights]
-            errorSumsBiases = [np.zeros(layer.shape) for layer in self.biases]
-            self.__errors = [np.zeros(len(layer)) for layer in self.weights]
+        if (visualize):
+            vizualisationData = []
+            fig, graph = plt.subplots()
 
-            #rempli self.activations et self.outputs
-            self.process(_input, True)
-            self.__desiredOutput = desiredOutput
+        for epoch in range(epochs):
+            randomState = random.getstate()
 
-            #Somme de matrice ?
-            for layerNumber in range(len(errorSumsWeights)-1, -1, -1):
-                for neuronNumber in range(len(errorSumsWeights[layerNumber])):
-                    errorSumsBiases[layerNumber][neuronNumber] += self.__Error(layerNumber, neuronNumber)
-                    for weightNumber in range(len(errorSumsWeights[layerNumber][neuronNumber])):
-                        #print("layer : " + str(layerNumber) + " neuron : " + str(neuronNumber) + " weight : " + str(weightNumber))
-                        errorSumsWeights[layerNumber][neuronNumber][weightNumber] += self.__PartialDerivative(layerNumber, neuronNumber, weightNumber)
+            random.shuffle(inputs)
 
-        total = 0
-        
-        
-        errorSumsWeights = np.multiply(errorSumsWeights, -(learningRate/len(inputs)))
-        self.weights = np.add(self.weights, errorSumsWeights)
+            random.setstate(randomState)
 
-        errorSumsBiases = np.multiply(errorSumsBiases, -(learningRate/len(inputs)))
-        self.biases = np.add(self.biases, errorSumsBiases)
+            random.shuffle(desiredOutputs)
 
-        #print(self.__biases)
-        
-        """
-        for layerNumber in range(len(errorSumsWeights)):
-                for neuronNumber in range(len(errorSumsWeights[layerNumber])):
+            if (visualize and epoch%10 == 0):
+                vizualisationFrame = np.empty((30, 30))
+                for x in range(30):
+                    for y in range(30):
+                        vizualisationFrame[x][y] = self.process(np.array([float(x), float(y)]))
+                vizualisationData.append([graph.imshow(vizualisationFrame, animated=True)])
 
-                    errorSumsBiases[layerNumber][neuronNumber] = errorSumsBiases[layerNumber][neuronNumber] / len(inputs)
-                    total += errorSumsBiases[layerNumber][neuronNumber]
-                    self.biases[layerNumber][neuronNumber] -= learningRate * errorSumsBiases[layerNumber][neuronNumber]
+            inputBatches = [inputs[j:j+batchSize] for j in range(0, len(inputs), batchSize)]
+            desiredOutputsBatches = [desiredOutputs[j:j+batchSize] for j in range(0, len(inputs), batchSize)]
+
+            for inputBatch, desiredOutputsBatch in zip(inputBatches, desiredOutputsBatches):
                     
-                    for weightNumber in range(len(errorSumsWeights[layerNumber][neuronNumber])):
+                for _input, desiredOutput in zip(inputBatch, desiredOutputsBatch):
 
-                        #Probablement faisable avec une multiplication de matrices
-                        errorSumsWeights[layerNumber][neuronNumber][weightNumber] = errorSumsWeights[layerNumber][neuronNumber][weightNumber] / len(inputs)
-                        
-                        total += errorSumsWeights[layerNumber][neuronNumber][weightNumber]
+                    errorSumsWeights = [np.zeros(layer.shape) for layer in self.weights]
+                    errorSumsBiases = [np.zeros(layer.shape) for layer in self.biases]
+                    self.__errors = [np.zeros(len(layer)) for layer in self.weights]
 
-                        #Probablement faisable avec une somme de matrices
-                        self.weights[layerNumber][neuronNumber][weightNumber] -= learningRate * errorSumsWeights[layerNumber][neuronNumber][weightNumber]
+                    #rempli self.activations et self.outputs
+                    self.process(_input, True)
+                    self.__desiredOutput = desiredOutput
 
-        #print("Error : " + str(total))"""
+                    #A optimiser
+                    for layerNumber in range(len(errorSumsWeights)-1, -1, -1):
+                        for neuronNumber in range(len(errorSumsWeights[layerNumber])):
+                            errorSumsBiases[layerNumber][neuronNumber] += self.__Error(layerNumber, neuronNumber)
+                            #for weightNumber in range(len(errorSumsWeights[layerNumber][neuronNumber])):
+                                #print("layer : " + str(layerNumber) + " neuron : " + str(neuronNumber) + " weight : " + str(weightNumber))
+                                #errorSumsWeights[layerNumber][neuronNumber][weightNumber] += self.__PartialDerivative(layerNumber, neuronNumber, weightNumber)
+                                #errorSumsWeights[layerNumber][neuronNumber][weightNumber] = errorSumsBiases[layerNumber][neuronNumber] * self.outputs[layerNumber][weightNumber]
+                            errorSumsWeights[layerNumber][neuronNumber] = np.dot(errorSumsBiases[layerNumber][neuronNumber],self.outputs[layerNumber])
+
+                total = 0
+                
+                for layerNumber in range(len(errorSumsWeights)):
+                    errorSumsWeights[layerNumber] = np.multiply(errorSumsWeights[layerNumber], -(learningRate/len(inputBatch)))
+                    self.weights[layerNumber] = np.add(self.weights[layerNumber], errorSumsWeights[layerNumber])
+
+                    errorSumsBiases[layerNumber] = np.multiply(errorSumsBiases[layerNumber], -(learningRate/len(inputBatch)))
+                    self.biases[layerNumber] = np.add(self.biases[layerNumber], errorSumsBiases[layerNumber])
+
+                #print(self.__biases)
+                """
+                
+                for layerNumber in range(len(errorSumsWeights)):
+                        for neuronNumber in range(len(errorSumsWeights[layerNumber])):
+
+                            errorSumsBiases[layerNumber][neuronNumber] = errorSumsBiases[layerNumber][neuronNumber] / len(inputBatch)
+                            total += errorSumsBiases[layerNumber][neuronNumber]
+                            self.biases[layerNumber][neuronNumber] -= learningRate * errorSumsBiases[layerNumber][neuronNumber]
+                            
+                            for weightNumber in range(len(errorSumsWeights[layerNumber][neuronNumber])):
+
+                                #Probablement faisable avec une multiplication de matrices
+                                errorSumsWeights[layerNumber][neuronNumber][weightNumber] = errorSumsWeights[layerNumber][neuronNumber][weightNumber] / len(inputBatch)
+                                
+                                #total += errorSumsWeights[layerNumber][neuronNumber][weightNumber]
+
+                                #Probablement faisable avec une somme de matrices
+                                self.weights[layerNumber][neuronNumber][weightNumber] -= learningRate * errorSumsWeights[layerNumber][neuronNumber][weightNumber]
+
+                #print("Error : " + str(total))"""
+        if (visualize):
+            ani = animation.ArtistAnimation(fig, vizualisationData, interval=100)
+            plt.show()
 
     def __Error(self, layer, neuron):
         if (self.__errors[layer][neuron] == 0 ):
@@ -122,20 +168,38 @@ class network:
 
     def __ErrorHiddenLayer(self, layer, neuron):
         upperLayerLinksSum = 0
-        #Probablement faisable avec une multiplication de matrices
         for upperLayerNeuron in range(len(self.weights[layer+1])):
             upperLayerLinksSum += self.weights[layer+1][upperLayerNeuron][neuron] * self.__errors[layer+1][upperLayerNeuron]
         return network.__sigmoid(self.activations[layer][neuron], derivative=True) * upperLayerLinksSum
 
-    def __PartialDerivative(self, layer, neuron, weight):
-        return self.__Error(layer, neuron) * self.outputs[layer][weight]
+    #def __PartialDerivative(self, layer, neuron, weight):
+    #    return self.__Error(layer, neuron) * self.outputs[layer][weight]
 
+    def accuracy(self, inputs, desiredOutputs):
+        if (type(inputs) != list or type(desiredOutputs) != list):
+            raise TypeError("The inputs and desired outputs must be lists of numpy arrays !")
+        if (len(inputs) != len(desiredOutputs)):
+            raise ValueError("The inputs and desired outputs lists must have the same amount of data !")
+        if (len(inputs) == 0):
+            raise ValueError("The list is empty !")
+        sum = 0
+        for i in range(len(desiredOutputs)):
+            if (np.argmax(desiredOutputs[i]) == np.argmax(self.process(inputs[i]))):
+                sum += 1
+        return sum/len(desiredOutputs)
 
 
     def saveToFile(self, fileName):
-        np.savez(fileName, biases=self.biases, weights=self.weights)
+        with open(fileName, "wb") as file:
+            pickle.dump(self, file)
 
     def loadFromFile(self, fileName):
-        data = np.load(fileName)
-        self.biases = data['biases']
-        self.weights = data['weights']
+        with open(fileName, "rb") as file:
+            fromNetwork = pickle.load(file)
+            self.weights = fromNetwork.weights
+            self.biases = fromNetwork.biases
+            self.__inputLayerSize = fromNetwork.__inputLayerSize
+
+    def networkFromFile(fileName):
+        with open(fileName, "rb") as file:
+            return pickle.load(file)
