@@ -1,7 +1,11 @@
 import tkinter
 from PIL import Image, ImageDraw
-from sobek.network import network
 import numpy as np
+from sys import path
+path.insert(1, "..")
+from sobek.network import network
+
+
 
 class Sketchpad(tkinter.Canvas):
     def __init__(self, parent, predictionLabel, **kwargs, ):

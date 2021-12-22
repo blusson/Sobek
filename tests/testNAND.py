@@ -1,5 +1,6 @@
 import numpy as np
-import random
+from sys import path
+path.insert(1, "..")
 from sobek.network import network
 
 myNetwork = network(2, 1)

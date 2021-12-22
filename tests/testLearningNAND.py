@@ -1,7 +1,9 @@
 import numpy as np
 import random
-from sobek.network import network
 import time
+from sys import path
+path.insert(1, "..")
+from sobek.network import network
 
 random.seed()
 
@@ -33,20 +35,12 @@ for i in range(nbRep):
 
     startTime = time.perf_counter()
 
-    #for j in range(10000):
-    #    inputs = []
-    #    desiredOutputs = []
-        
-        #if (j%1000 == 0):
-        #    print(j)
-        
-    #    myNetwork.train(test, result, learningRate)
-
     myNetwork.train(test, result, learningRate, len(test), 10000, visualize=False)
 
     endTime = time.perf_counter()
     learningTime += endTime - startTime
 learningTime = learningTime / nbRep
+
 test = []
 result = []
 test.append(np.zeros(2))

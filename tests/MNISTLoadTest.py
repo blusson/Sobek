@@ -1,6 +1,8 @@
 import numpy as np
-from sobek.network import network
 import gzip
+from sys import path
+path.insert(1, "..")
+from sobek.network import network
 
 print("--- Data loading ---")
 
