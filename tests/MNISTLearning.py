@@ -27,7 +27,20 @@ for label in tempTrainLabels:
     trainLabels.append(np.zeros(10))
     trainLabels[-1][label] = 1.0
 
-myNetwork = network(784, 30, 10)
+tempAccuracyImages = getData("./MNIST/t10k-images-idx3-ubyte.gz")[0x10:].reshape((-1, 784)).tolist()
+accuracyImages = []
+for image in tempAccuracyImages:
+    for pixel in range(784):
+        if image[pixel] !=0:
+            image[pixel] = image[pixel]/256
+    accuracyImages.append(np.array(image, dtype=np.float64))
+tempAccuracyLabels = getData("./MNIST/t10k-labels-idx1-ubyte.gz")[8:]
+accuracyLabels = []
+for label in tempAccuracyLabels:
+    accuracyLabels.append(np.zeros(10))
+    accuracyLabels[-1][label] = 1.0
+
+myNetwork = network(784, 32, 10)
 
 learningRate = 3.0
 
@@ -48,7 +61,7 @@ for i in range(1):
             print(batchEnd)
 """
 
-myNetwork.train(trainImages, trainLabels, learningRate, 10, 30)
+myNetwork.train(trainImages, trainLabels, learningRate, batchSize=10, epochs=30, accuracyInputs=accuracyImages, accuracyDesiredOutputs=accuracyLabels)
 
 endTime = time.perf_counter()
 
@@ -57,4 +70,4 @@ print("Learning time : " + str(endTime - startTime))
 print(trainLabels[121])
 print(myNetwork.process(trainImages[121]))
 
-myNetwork.saveToFile("MNIST30epoch")
+myNetwork.saveToFile("MNISTtest3")

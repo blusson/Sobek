@@ -35,7 +35,7 @@ for i in range(nbRep):
 
     startTime = time.perf_counter()
 
-    myNetwork.train(test, result, learningRate, len(test), 10000, visualize=False)
+    myNetwork.train(test, result, learningRate, len(test), 10000, visualize=True)
 
     endTime = time.perf_counter()
     learningTime += endTime - startTime

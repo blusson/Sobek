@@ -60,14 +60,14 @@ class network:
 
 
 
-    def train(self, inputs, desiredOutputs, learningRate, batchSize, epochs=1, visualize=False):
+    def train(self, inputs, desiredOutputs, learningRate, batchSize, epochs=1, accuracyInputs=False, accuracyDesiredOutputs=False, visualize=False):
         if (type(inputs) != list or type(desiredOutputs) != list):
             raise TypeError("The inputs and desired outputs must be lists of numpy arrays !")
         if (len(inputs) != len(desiredOutputs)):
             raise ValueError("The inputs and desired outputs lists must have the same amount of data ! " + str(len(inputs)) + " != " + str(len(desiredOutputs)))
         if (len(inputs) == 0):
             raise ValueError("The list is empty !")
-        if (visualize == False):
+        if (visualize != False):
             if (self.__inputLayerSize != 2):
                 raise ValueError("Visualization is only possible for 2 inputs networks")
             if (len(self.weights[-1]) != 1):
@@ -125,6 +125,14 @@ class network:
 
                     errorSumsBiases[layerNumber] = np.multiply(errorSumsBiases[layerNumber], -(learningRate/len(inputBatch)))
                     self.biases[layerNumber] = np.add(self.biases[layerNumber], errorSumsBiases[layerNumber])
+
+            '''errorSum = 0
+            for layer in errorSumsBiases:
+                errorSum += np.sum(np.abs(layer))
+            print(errorSum)'''
+
+            if (accuracyInputs and accuracyDesiredOutputs):
+                print(self.accuracy(accuracyInputs, accuracyDesiredOutputs))
 
         if (visualize):
             ani = animation.ArtistAnimation(fig, vizualisationData, interval=100)
