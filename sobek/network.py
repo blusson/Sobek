@@ -115,6 +115,7 @@ class network:
                     for layerNumber in range(len(errorSumsWeights)-1, -1, -1):
                         for neuronNumber in range(len(errorSumsWeights[layerNumber])):
                             errorSumsBiases[layerNumber][neuronNumber] += self.__Error(layerNumber, neuronNumber)
+                            #eventuellemtn sortir de boucle
                             errorSumsWeights[layerNumber][neuronNumber] = np.dot(errorSumsBiases[layerNumber][neuronNumber],self.outputs[layerNumber])
 
                 total = 0
@@ -180,3 +181,16 @@ class network:
     def networkFromFile(fileName):
         with open(fileName, "rb") as file:
             return pickle.load(file)
+
+
+
+
+class model:
+
+    def __init__(self, inputWidth, inputHeight, inputChannels):
+        self.inputWidth = inputWidth
+        self.inputHeight = inputHeight
+        self.inputChannels = inputChannels
+        self.layers = []
+
+    def add(layerType, activation):
