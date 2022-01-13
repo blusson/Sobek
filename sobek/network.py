@@ -194,3 +194,4 @@ class model:
         self.layers = []
 
     def add(layerType, activation):
+        self.layers.add()
