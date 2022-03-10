@@ -1,5 +1,6 @@
 import random
 import numpy as np
+import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import pickle
@@ -93,7 +94,7 @@ class network:
                 vizualisationFrame = np.empty((30, 30))
                 for x in range(30):
                     for y in range(30):
-                        vizualisationFrame[x][y] = self.process(np.array([float(x), float(y)]))
+                        vizualisationFrame[x][y] = self.process(np.array([float(x)/30, float(y)/30]))
                 vizualisationData.append([graph.imshow(vizualisationFrame, animated=True)])
 
             inputBatches = [inputs[j:j+batchSize] for j in range(0, len(inputs), batchSize)]
@@ -135,7 +136,7 @@ class network:
                 print(self.accuracy(accuracyInputs, accuracyDesiredOutputs))
 
         if (visualize):
-            ani = animation.ArtistAnimation(fig, vizualisationData, interval=100)
+            ani = animation.ArtistAnimation(fig, vizualisationData, interval=100, repeat_delay=1000)
             plt.show()
 
     def __Error(self, layer, neuron):

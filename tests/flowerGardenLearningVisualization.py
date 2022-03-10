@@ -12,6 +12,6 @@ trainLabels = data[1]
 
 myNetwork = network(2, 16, 1)
 
-learningRate = 5.0
+learningRate = 3.0
 
-myNetwork.train(trainPoints, trainLabels, learningRate, batchSize=10, epochs=1000, visualize=True)
+myNetwork.train(trainPoints, trainLabels, learningRate, batchSize=100, epochs=3000, visualize=True)

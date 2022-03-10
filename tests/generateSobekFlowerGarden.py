@@ -9,7 +9,7 @@ trainLabels = []
 
 random.seed(1216513)
 
-for i in range(100):
+for i in range(1000):
     x = random.randint(-50, 50)
     y = random.randint(-50, 50)
 
