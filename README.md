@@ -6,4 +6,5 @@ Cette librairie python permet de créer simplement un modèle de perceptron mult
  - Le learning rate
  - Le batch size
  - Le nombre d’époques
-Il est également possible de donner un jeu de données supplémentaire afin de mesurer la précision du modèle à la fin de l'entraînement. Lorsqu’il n'y a que deux neurones d'entrées, il y a une option pour visualiser l’entraînement.
+
+ Il est également possible de donner un jeu de données supplémentaire afin de mesurer la précision du modèle à la fin de l'entraînement. Lorsqu’il n'y a que deux neurones d'entrées, il y a une option pour visualiser l’entraînement.
