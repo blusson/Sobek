@@ -14,7 +14,7 @@ class Sketchpad(tkinter.Canvas):
         self.bind("<B1-Motion>", self.add_line)
         self.PILImage = Image.new("F", (560, 560), 100)
         self.draw = ImageDraw.Draw(self.PILImage)
-        self.MNISTNN = network.networkFromFile("MNISTtest2")
+        self.MNISTNN = network.networkFromFile("MNIST30epoch")
         self.predictionLabel = predictionLabel
 
     def add_line(self, event):
